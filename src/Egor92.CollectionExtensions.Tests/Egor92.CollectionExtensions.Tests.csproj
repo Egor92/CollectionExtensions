@@ -57,6 +57,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="CollectionExtensionsTest.cs" />
     <Compile Include="EnumerableExtentionsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

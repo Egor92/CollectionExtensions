@@ -10,7 +10,7 @@ namespace Egor92.CollectionExtensions.Tests
     public class EnumerableExtentionsTest
     {
         [Test]
-        public void IfEnumerableHasItems_AndCallForEach_ThenActionWillBeInvokedForEachItem()
+        public void ForEach_WhenEnumerableHasItems_ThenActionWillBeInvokedForEachItem()
         {
             var itemCount = 1000;
             var originalEnumerable = Enumerable.Range(0, itemCount)
@@ -24,7 +24,7 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
-        public void IfEnumerableEqualsNull_AndCallForEach_ThenThrowArgumentNullException()
+        public void ForEach_WhenEnumerableEqualsNull_ThenThrowsAnException()
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
@@ -35,7 +35,7 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
-        public void IfCallForEachWithNullAction_ThenThrowArgumentNullException()
+        public void ForEach_WhenActionEqualsNull_ThenThrowsAnException()
         {
             IEnumerable<object> originalEnumerable = Enumerable.Empty<object>();
 
@@ -46,7 +46,7 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
-        public void IfEnumerableHasItem_AndCallDisposeEnumerable_ThenDisposeWillBeInvokedForEachItem()
+        public void DisposeEnumerable_WhenEnumerableHasItem_ThenDisposeWillBeInvokedForEachItem()
         {
             var itemCount = 1000;
             Func<Mock<IDisposable>> createMockOfDisposable = () =>
@@ -72,7 +72,7 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
-        public void IfEnumerableEqualsNull_AndCallDisposeEnumerable_ThenThrowArgumentNullException()
+        public void DisposeEnumerable_WhenEnumerableEqualsNull_ThenThrowsAnException()
         {
             Assert.Throws<ArgumentNullException>(() =>
             {

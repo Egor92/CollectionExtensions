@@ -10,6 +10,19 @@ namespace Egor92.CollectionExtensions.Tests
     [TestFixture]
     public class CollectionExtensionsTest
     {
+        public class Item : IUpdatable<Item>
+        {
+            public int Id { get; set; }
+
+            public string Value { get; set; }
+
+            public void Update(Item source)
+            {
+                Id = source.Id;
+                Value = source.Value;
+            }
+        }
+
         [Test]
         public void Sort_WhenEnumerableEqualsNull_ThenThrowsException()
         {
@@ -65,7 +78,8 @@ namespace Egor92.CollectionExtensions.Tests
                                        .ToList();
 
             const int newItemsCount = 5;
-            IEnumerable<int> newItems = Enumerable.Range(10, newItemsCount).ToList();
+            IEnumerable<int> newItems = Enumerable.Range(10, newItemsCount)
+                                                  .ToList();
 
             list.AddRange(newItems);
 
@@ -119,7 +133,7 @@ namespace Egor92.CollectionExtensions.Tests
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                ((ICollection<object>)null).RemoveRange(new List<object>());
+                ((ICollection<object>) null).RemoveRange(new List<object>());
             });
         }
 
@@ -155,7 +169,7 @@ namespace Egor92.CollectionExtensions.Tests
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                ((ICollection<object>)null).RemoveIf(_ => false);
+                ((ICollection<object>) null).RemoveIf(_ => false);
             });
         }
 
@@ -167,6 +181,185 @@ namespace Egor92.CollectionExtensions.Tests
                 var collection = new Collection<object>();
                 collection.RemoveIf(null);
             });
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenCollectionIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                ((ICollection<object>) null).AddOrRemoveOrUpdate(new List<object>(), x => x, x => x, x => x, (target, source) =>
+                {
+                });
+            });
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenNewItemsArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.AddOrRemoveOrUpdate<object, object, object>(null, x => x, x => x, x => x, (target, source) =>
+                {
+                });
+            });
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenGetItemKeyArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.AddOrRemoveOrUpdate(new List<object>(), null, x => x, x => x, (target, source) =>
+                {
+                });
+            });
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenGetNewItemKeyArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.AddOrRemoveOrUpdate(new List<object>(), x => x, null, x => x, (target, source) =>
+                {
+                });
+            });
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenGetItemArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.AddOrRemoveOrUpdate(new List<object>(), x => x, x => x, null, (target, source) =>
+                {
+                });
+            });
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenUpdateItemArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.AddOrRemoveOrUpdate(new List<object>(), x => x, x => x, x => x, (UpdateDelegate<object, object>) null);
+            });
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenAllArgsExceptComparerAreNotNull_ThenItemWithNewKeysWillBeAddedToCollection()
+        {
+            var item1 = new Item()
+            {
+                Id = 1,
+                Value = "First",
+            };
+            var item2 = new Item()
+            {
+                Id = 2,
+                Value = "Second",
+            };
+            var item3 = new Item()
+            {
+                Id = 3,
+                Value = "Third",
+            };
+            var item4 = new Item()
+            {
+                Id = 4,
+                Value = "Forth",
+            };
+            var item5 = new Item()
+            {
+                Id = 5,
+                Value = "Fifth",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+                item3,
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                item3,
+                item4,
+                item5,
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.AddOrRemoveOrUpdate(newItems, x => x.Id, x => x.Id, x => x, (target, source) => target.Update(source));
+
+            CollectionAssert.AreEquivalent(newItems, collection);
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenItemIsInCollectionAndInNewItems_ThenThisItemWillNotBeenAddedOrRemoved()
+        {
+            var commonItemId = 1;
+            var commonItem = new Item()
+            {
+                Id = commonItemId,
+                Value = "CommonItem",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                commonItem,
+                new Item()
+                {
+                    Id = 2,
+                },
+                new Item()
+                {
+                    Id = 3,
+                },
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                commonItem,
+                new Item()
+                {
+                    Id = 4,
+                },
+                new Item()
+                {
+                    Id = 5,
+                },
+            };
+
+            bool isCommonItemChangingNotified = false;
+            var collection = new ObservableCollection<Item>(originalItems);
+            collection.CollectionChanged += (sender, e) =>
+            {
+                if (e.NewItems != null)
+                {
+                    foreach (Item newItem in e.NewItems)
+                    {
+                        isCommonItemChangingNotified |= newItem.Id == commonItem.Id;
+                    }
+                }
+                if (e.OldItems != null)
+                {
+                    foreach (Item oldItems in e.OldItems)
+                    {
+                        isCommonItemChangingNotified |= oldItems.Id == commonItem.Id;
+                    }
+                }
+            };
+
+            collection.AddOrRemoveOrUpdate(newItems, x => x.Id, x => x.Id, x => x, (target, source) => target.Update(source));
+
+            Assert.IsFalse(isCommonItemChangingNotified);
         }
     }
 }

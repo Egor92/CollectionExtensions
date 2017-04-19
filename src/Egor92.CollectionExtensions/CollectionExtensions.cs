@@ -109,14 +109,14 @@ namespace Egor92.CollectionExtensions
                                                                 UpdateDelegate<TItem, TNewItem> updateItem,
                                                                 IEqualityComparer<TItem> comparer = null)
         {
-            TItem CreateItemAction(TNewItem x)
+            Func<TNewItem, TItem> createItemAction = x =>
             {
                 var item = newItemToSourceItemFunc(x);
                 updateItem(item, x);
                 return item;
-            }
+            };
 
-            AddOrRemoveOrUpdate(collection, newItems, x => x, newItemToSourceItemFunc, CreateItemAction, updateItem, comparer);
+            AddOrRemoveOrUpdate(collection, newItems, x => x, newItemToSourceItemFunc, createItemAction, updateItem, comparer);
         }
 
         public static void AddOrRemoveOrUpdate<T>(this ICollection<T> collection,

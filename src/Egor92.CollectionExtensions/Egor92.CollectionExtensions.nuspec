@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+    <metadata>
+        <id>Egor92.CollectionExtensions</id>
+        <version>$version$</version>
+        <title>Egor92.CollectionExtensions</title>
+        <authors>Novikov Egor</authors>
+        <owners>Novikov Egor</owners>
+        <licenseUrl>https://github.com/Egor92/CollectionExtensions/blob/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/Egor92/CollectionExtensions</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Contains the set of extension methods for IEnumerable&lt;T&gt; and ICollection&lt;T&gt;</description>
+        <copyright>Copyright © 2017 Novikov Egor</copyright>
+        <tags>collection enumerable extensions add remove update sort foreach</tags>
+    </metadata>
+    <files>
+        <file src="bin\Release\Egor92.CollectionExtensions.dll" target="lib\Egor92.CollectionExtensions.dll" />
+    </files>
+</package>

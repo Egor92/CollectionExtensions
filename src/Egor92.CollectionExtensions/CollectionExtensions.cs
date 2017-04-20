@@ -171,6 +171,13 @@ namespace Egor92.CollectionExtensions
             collection.AddRange(itemsToAdd);
         }
 
+        public static void AddOrRemove<TItem>(this ICollection<TItem> collection,
+                                              IEnumerable<TItem> newItems,
+                                              IEqualityComparer<TItem> comparer = null)
+        {
+            AddOrRemove(collection, newItems, x => x, comparer);
+        }
+
         public static void ReplaceItems<TItem, TNewItem>(this ICollection<TItem> collection,
                                                          IEnumerable<TNewItem> newItems,
                                                          Func<TNewItem, TItem> createItemAction)
@@ -187,7 +194,7 @@ namespace Egor92.CollectionExtensions
             collection.AddRange(convertedNewItems);
         }
 
-        public static void ReplaceItems<T>(this ICollection<T> collection, IEnumerable<T> newItems)
+        public static void ReplaceItems<TItem>(this ICollection<TItem> collection, IEnumerable<TItem> newItems)
         {
             if (collection == null)
                 throw new ArgumentNullException(nameof(collection));

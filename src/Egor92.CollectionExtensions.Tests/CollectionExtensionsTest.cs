@@ -109,6 +109,16 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
+        public void AddRange_WhenItemsArgIsNull_ThenThrowsAnException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.RemoveRange(null);
+            });
+        }
+
+        [Test]
         public void RemoveRange_WhenCollectionAndItemsArgAreNotNull_ThenItemsWillBeRemovedFromCollection()
         {
             const int startCount = 10;
@@ -134,16 +144,6 @@ namespace Egor92.CollectionExtensions.Tests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 ((ICollection<object>) null).RemoveRange(new List<object>());
-            });
-        }
-
-        [Test]
-        public void AddRange_WhenItemsArgIsNull_ThenThrowsAnException()
-        {
-            Assert.Throws<ArgumentNullException>(() =>
-            {
-                var collection = new Collection<object>();
-                collection.RemoveRange(null);
             });
         }
 
@@ -253,7 +253,7 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
-        public void AddOrRemoveOrUpdate_WhenAllArgsExceptComparerAreNotNull_ThenItemWithNewKeysWillBeAddedToCollection()
+        public void AddOrRemoveOrUpdate_WhenItemWithCertainKeyIsNotInCollectionAndIsInNewItems_ThenThisItemWillBeAddedToCollection()
         {
             var item1 = new Item()
             {
@@ -270,15 +270,43 @@ namespace Egor92.CollectionExtensions.Tests
                 Id = 3,
                 Value = "Third",
             };
-            var item4 = new Item()
+
+            var originalItems = new Collection<Item>()
             {
-                Id = 4,
-                Value = "Forth",
+                item1,
+                item2,
             };
-            var item5 = new Item()
+
+            var newItems = new Collection<Item>()
             {
-                Id = 5,
-                Value = "Fifth",
+                item1,
+                item2,
+                item3,
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.AddOrRemoveOrUpdate(newItems, x => x.Id, x => x.Id, x => x, (target, source) => target.Update(source));
+
+            CollectionAssert.AreEquivalent(newItems, collection);
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenItemWithCertainKeyIsInCollectionAndIsNotInNewItems_ThenItemWithOldKeysWillBeRemovedFromCollection()
+        {
+            var item1 = new Item()
+            {
+                Id = 1,
+                Value = "First",
+            };
+            var item2 = new Item()
+            {
+                Id = 2,
+                Value = "Second",
+            };
+            var item3 = new Item()
+            {
+                Id = 3,
+                Value = "Third",
             };
 
             var originalItems = new Collection<Item>()
@@ -290,9 +318,8 @@ namespace Egor92.CollectionExtensions.Tests
 
             var newItems = new Collection<Item>()
             {
-                item3,
-                item4,
-                item5,
+                item1,
+                item2,
             };
 
             var collection = new List<Item>(originalItems);
@@ -302,7 +329,7 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
-        public void AddOrRemoveOrUpdate_WhenItemIsInCollectionAndInNewItems_ThenThisItemWillNotBeenAddedOrRemoved()
+        public void AddOrRemoveOrUpdate_WhenItemIsInCollectionAndIsInNewItems_ThenThisItemWillNotBeenAddedOrRemoved()
         {
             var commonItemId = 1;
             var commonItem = new Item()
@@ -318,10 +345,6 @@ namespace Egor92.CollectionExtensions.Tests
                 {
                     Id = 2,
                 },
-                new Item()
-                {
-                    Id = 3,
-                },
             };
 
             var newItems = new Collection<Item>()
@@ -329,11 +352,7 @@ namespace Egor92.CollectionExtensions.Tests
                 commonItem,
                 new Item()
                 {
-                    Id = 4,
-                },
-                new Item()
-                {
-                    Id = 5,
+                    Id = 3,
                 },
             };
 
@@ -401,7 +420,7 @@ namespace Egor92.CollectionExtensions.Tests
         }
 
         [Test]
-        public void AddOrRemoveOrUpdate_WhenTwoItemsWithSameKeyAreInNewItemsCollection_ThenTheFirstItemWillBeUpdationSource()
+        public void AddOrRemoveOrUpdate_WhenTwoItemsWithSameKeyAreInNewItemsCollection_ThenTheFirstItemWillBeAsUpdationSource()
         {
             var oldValue = "Old value";
             var originalItems = new Collection<Item>()
@@ -435,6 +454,303 @@ namespace Egor92.CollectionExtensions.Tests
             Assert.AreEqual(1, collection.Count);
             CollectionAssert.AreEquivalent(collection, originalItems);
             Assert.AreEqual(newValue, collection[0].Value);
+        }
+
+        [Test]
+        public void AddOrRemove_WhenCollectionIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                ((ICollection<object>)null).AddOrRemove(new List<object>(), x => x);
+            });
+        }
+
+        [Test]
+        public void AddOrRemove_WhenNewItemsArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.AddOrRemove<object, object>(null, x => x);
+            });
+        }
+
+        [Test]
+        public void AddOrRemove_WhenGetItemArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.AddOrRemove<object, object>(new List<object>(), null);
+            });
+        }
+
+        [Test]
+        public void AddOrRemove_WhenItemWithCertainKeyIsNotInCollectionAndIsInNewItems_ThenThisItemWillBeAddedToCollection()
+        {
+            var item1 = new Item()
+            {
+                Id = 1,
+                Value = "First",
+            };
+            var item2 = new Item()
+            {
+                Id = 2,
+                Value = "Second",
+            };
+            var item3 = new Item()
+            {
+                Id = 3,
+                Value = "Third",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+                item3,
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.AddOrRemove(newItems);
+
+            CollectionAssert.AreEquivalent(newItems, collection);
+        }
+
+        [Test]
+        public void AddOrRemove_WhenItemWithCertainKeyIsInCollectionAndIsNotInNewItems_ThenItemWithOldKeysWillBeRemovedFromCollection()
+        {
+            var item1 = new Item()
+            {
+                Id = 1,
+                Value = "First",
+            };
+            var item2 = new Item()
+            {
+                Id = 2,
+                Value = "Second",
+            };
+            var item3 = new Item()
+            {
+                Id = 3,
+                Value = "Third",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+                item3,
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.AddOrRemove(newItems);
+
+            CollectionAssert.AreEquivalent(newItems, collection);
+        }
+
+        [Test]
+        public void AddOrRemove_WhenItemIsInCollectionAndIsInNewItems_ThenThisItemWillNotBeenAddedOrRemoved()
+        {
+            var commonItemId = 1;
+            var commonItem = new Item()
+            {
+                Id = commonItemId,
+                Value = "CommonItem",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                commonItem,
+                new Item()
+                {
+                    Id = 2,
+                },
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                commonItem,
+                new Item()
+                {
+                    Id = 3,
+                },
+            };
+
+            bool isCommonItemChangingNotified = false;
+            var collection = new ObservableCollection<Item>(originalItems);
+            collection.CollectionChanged += (sender, e) =>
+            {
+                if (e.NewItems != null)
+                {
+                    foreach (Item newItem in e.NewItems)
+                    {
+                        isCommonItemChangingNotified |= newItem.Id == commonItem.Id;
+                    }
+                }
+                if (e.OldItems != null)
+                {
+                    foreach (Item oldItems in e.OldItems)
+                    {
+                        isCommonItemChangingNotified |= oldItems.Id == commonItem.Id;
+                    }
+                }
+            };
+
+            collection.AddOrRemove(newItems);
+
+            Assert.IsFalse(isCommonItemChangingNotified);
+        }
+
+        [Test]
+        public void ReplaceItems_WhenCollectionIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                ((ICollection<object>)null).ReplaceItems(new List<object>(), x => x);
+            });
+        }
+
+        [Test]
+        public void ReplaceItems_WhenNewItemsArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.ReplaceItems<object, object>(null, x => x);
+            });
+        }
+
+        [Test]
+        public void ReplaceItems_WhenGetItemArgIsNull_ThenThrowsException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var collection = new Collection<object>();
+                collection.ReplaceItems<object, object>(new List<object>(), null);
+            });
+        }
+
+        [Test]
+        public void ReplaceItems_WhenItemWithCertainKeyIsNotInCollectionAndIsInNewItems_ThenThisItemWillBeInCollection()
+        {
+            var item1 = new Item()
+            {
+                Id = 1,
+                Value = "First",
+            };
+            var item2 = new Item()
+            {
+                Id = 2,
+                Value = "Second",
+            };
+            var item3 = new Item()
+            {
+                Id = 3,
+                Value = "Third",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+                item3,
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.ReplaceItems(newItems);
+
+            CollectionAssert.AreEquivalent(newItems, collection);
+        }
+
+        [Test]
+        public void ReplaceItems_WhenItemWithCertainKeyIsInCollectionAndIsNotInNewItems_ThenItemWithOldKeysWillNotBeInCollection()
+        {
+            var item1 = new Item()
+            {
+                Id = 1,
+                Value = "First",
+            };
+            var item2 = new Item()
+            {
+                Id = 2,
+                Value = "Second",
+            };
+            var item3 = new Item()
+            {
+                Id = 3,
+                Value = "Third",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+                item3,
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                item1,
+                item2,
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.ReplaceItems(newItems);
+
+            CollectionAssert.AreEquivalent(newItems, collection);
+        }
+
+        [Test]
+        public void ReplaceItems_WhenItemIsInCollectionAndIsInNewItems_ThenThisItemWillBeInCollection()
+        {
+            var commonItemId = 1;
+            var commonItem = new Item()
+            {
+                Id = commonItemId,
+                Value = "CommonItem",
+            };
+
+            var originalItems = new Collection<Item>()
+            {
+                commonItem,
+                new Item()
+                {
+                    Id = 2,
+                },
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                commonItem,
+                new Item()
+                {
+                    Id = 3,
+                },
+            };
+
+            var collection = new ObservableCollection<Item>(originalItems);
+            collection.ReplaceItems(newItems);
+
+            CollectionAssert.AreEquivalent(newItems, collection);
         }
     }
 }

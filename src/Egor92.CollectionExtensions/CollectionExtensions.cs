@@ -38,7 +38,8 @@ namespace Egor92.CollectionExtensions
 
         public static void RemoveIf<T>(this ICollection<T> collection, Func<T, bool> condition)
         {
-            var itemsToRemove = collection.Where(condition).ToList();
+            var itemsToRemove = collection.Where(condition)
+                                          .ToList();
             foreach (var item in itemsToRemove)
             {
                 collection.Remove(item);
@@ -79,26 +80,19 @@ namespace Egor92.CollectionExtensions
                                           .Select(x => getItem(x.Value))
                                           .ToList();
 
-            var oldAndNewItemPairsToUpdate = new Dictionary<TItem, TNewItem>();
-            if (updateItem != null)
-            {
-                oldAndNewItemPairsToUpdate = newItemsByKey.Where(x => oldItemsByKey.Keys.Contains(x.Key))
+            var oldAndNewItemPairsToUpdate = newItemsByKey.Where(x => oldItemsByKey.Keys.Contains(x.Key))
                                                           .ToDictionary(x => oldItemsByKey[x.Key], x => x.Value);
-            }
 
             collection.RemoveRange(itemsToDelete);
             collection.AddRange(itemsToAdd);
 
-            if (updateItem != null)
+            foreach (var pair in oldAndNewItemPairsToUpdate)
             {
-                foreach (var pair in oldAndNewItemPairsToUpdate)
+                var oldItem = pair.Key;
+                var newItem = pair.Value;
+                if (!Equals(oldItem, null) && !Equals(newItem, null))
                 {
-                    var oldItem = pair.Key;
-                    var newItem = pair.Value;
-                    if (!Equals(oldItem, null) && !Equals(newItem, null))
-                    {
-                        updateItem(oldItem, newItem);
-                    }
+                    updateItem(oldItem, newItem);
                 }
             }
         }
@@ -149,15 +143,6 @@ namespace Egor92.CollectionExtensions
             AddOrRemoveOrUpdate(collection, newItems, newItemToSourceItemFunc, updateItem, comparer);
         }
 
-        public static void AddOrRemoveOrUpdate<T>(this ICollection<T> collection,
-                                                  IEnumerable<T> newItems,
-                                                  IEqualityComparer<T> comparer = null)
-            where T : IUpdatable<T>
-        {
-            var updateItem = GetUpdateItemAction<T, T>();
-            AddOrRemoveOrUpdate(collection, newItems, x => x, updateItem, comparer);
-        }
-
         private static UpdateDelegate<TTarget, TSource> GetUpdateItemAction<TTarget, TSource>()
             where TTarget : IUpdatable<TSource>
         {
@@ -184,11 +169,6 @@ namespace Egor92.CollectionExtensions
 
             collection.RemoveRange(itemsToRemove);
             collection.AddRange(itemsToAdd);
-        }
-
-        public static void AddOrRemove<T>(this ICollection<T> collection, IEnumerable<T> newItems, IEqualityComparer<T> comparer = null)
-        {
-            AddOrRemove(collection, newItems, x => x, comparer);
         }
 
         public static void ReplaceItems<TItem, TNewItem>(this ICollection<TItem> collection,

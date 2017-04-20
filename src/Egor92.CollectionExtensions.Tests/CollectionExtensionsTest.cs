@@ -10,7 +10,7 @@ namespace Egor92.CollectionExtensions.Tests
     [TestFixture]
     public class CollectionExtensionsTest
     {
-        public class Item : IUpdatable<Item>
+        private class Item : IUpdatable<Item>
         {
             public int Id { get; set; }
 
@@ -360,6 +360,81 @@ namespace Egor92.CollectionExtensions.Tests
             collection.AddOrRemoveOrUpdate(newItems, x => x.Id, x => x.Id, x => x, (target, source) => target.Update(source));
 
             Assert.IsFalse(isCommonItemChangingNotified);
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenSeveralItemsWithSameKeyAreInNewItemsCollection_ThenWillBeAddedFirstItemOnly()
+        {
+            var originalItems = new Collection<Item>()
+            {
+                new Item()
+                {
+                    Id = 1,
+                },
+                new Item()
+                {
+                    Id = 2,
+                },
+                new Item()
+                {
+                    Id = 3,
+                },
+            };
+
+            var newItems = new Collection<Item>()
+            {
+                new Item()
+                {
+                    Id = 4,
+                },
+                new Item()
+                {
+                    Id = 4,
+                },
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.AddOrRemoveOrUpdate(newItems, x => x.Id, x => x.Id, x => x);
+
+            Assert.AreEqual(1, collection.Count);
+            CollectionAssert.Contains(collection, newItems[0]);
+        }
+
+        [Test]
+        public void AddOrRemoveOrUpdate_WhenTwoItemsWithSameKeyAreInNewItemsCollection_ThenTheFirstItemWillBeUpdationSource()
+        {
+            var oldValue = "Old value";
+            var originalItems = new Collection<Item>()
+            {
+                new Item()
+                {
+                    Id = 1,
+                    Value = oldValue,
+                },
+            };
+
+            var newValue = "New value";
+            var otherValue = "Other value";
+            var newItems = new Collection<Item>()
+            {
+                new Item()
+                {
+                    Id = 1,
+                    Value = newValue,
+                },
+                new Item()
+                {
+                    Id = 1,
+                    Value = otherValue,
+                },
+            };
+
+            var collection = new List<Item>(originalItems);
+            collection.AddOrRemoveOrUpdate(newItems, x => x.Id, x => x.Id, x => x);
+
+            Assert.AreEqual(1, collection.Count);
+            CollectionAssert.AreEquivalent(collection, originalItems);
+            Assert.AreEqual(newValue, collection[0].Value);
         }
     }
 }
